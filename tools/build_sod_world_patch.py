@@ -19,9 +19,14 @@ Each content module contributes data only:
 
 This tool globs ../mod-sod-*/tools/*.json (so mod-sod-mage, a future
 mod-sod-warrior, and this module all feed the one patch with no C++ or build
-coupling). The patch is written to its own locale letter (patch-enus-y.mpq), a
-DIFFERENT file from mod-sod-mage's spell patch (patch-enus-z.mpq); since the two
-touch disjoint DBCs they both apply. Regenerate BOTH after changing items.
+coupling). This module owns patch letter 'y' (mod-sod-mage owns 'z'); since the
+two touch disjoint DBCs they both apply. Regenerate BOTH after changing items.
+
+The locale is detected from the client (Data/<locale>/), and the patch is written
+to BOTH the locale chain (Data/<locale>/patch-<locale>-y.mpq) and the base chain
+(Data/patch-y.mpq): Item.dbc/ItemDisplayInfo.dbc are non-localized, and which
+chain the client reads them from varies per client (the "3.3.5a HD" pack injects
+some DBCs into the base chain), so writing both guarantees the override wins.
 
 Requires `pympq` (StormLib binding).
 
@@ -42,16 +47,20 @@ MODULE_ROOT = os.path.dirname(HERE)
 MODULES_DIR = os.path.dirname(MODULE_ROOT)
 
 DEFAULT_CLIENT = r"E:\Games\World of Warcraft 3.3.5a HD"
-PATCH_MPQ_NAME = "patch-enus-y.mpq"          # this module's item patch
-MAGE_PATCH_NAME = "patch-enus-z.mpq"         # mod-sod-mage's spell patch (ignored as a base)
+
+# A DBC override only wins if it outranks the highest-priority existing copy. The
+# client has two archive chains: the LOCALE chain (Data/<locale>/, patch-<locale>-y)
+# and the BASE chain (Data/, patch-y). Which chain holds a rival copy varies per
+# client (the "3.3.5a HD" pack injects some DBCs into the base chain), so we write
+# Item.dbc/ItemDisplayInfo.dbc (both non-localized) to BOTH chains. Letter 'y' is
+# near the end of the patch order, so our patches outrank any stock one.
+PATCH_LETTER = "y"  # this module's patch letter (mod-sod-mage uses 'z')
+# Both SoD modules' custom patch letters — excluded when reading clean client data
+# so a rebuild never sources from our own (or a sibling module's) output.
+CUSTOM_PATCH_LETTERS = ("y", "z")
 
 ITEM_INNER = "DBFilesClient\\Item.dbc"
 IDI_INNER = "DBFilesClient\\ItemDisplayInfo.dbc"
-
-# Archives that may carry stale custom rows — never use them as the extraction
-# base, so we always build Item.dbc/ItemDisplayInfo.dbc from the clean client
-# data (the HD client's own patch-enus-a.mpq IS a legitimate base and is kept).
-IGNORE_AS_BASE = {PATCH_MPQ_NAME.lower(), MAGE_PATCH_NAME.lower()}
 
 # ItemDisplayInfo.dbc (3.3.5a): 25 int fields, field 5 = InventoryIcon[0].
 IDI_ICON_FIELD = 5
@@ -153,19 +162,48 @@ def mpq_priority(path):
     return (1, rank)
 
 
-def extract_client_dbc(client_dir, name, dest):
+def detect_locale(client_dir):
+    """Return the client's locale folder token under Data/ (the one holding the
+    `locale-*.mpq` archives), e.g. 'enus' or 'dede'. Preserves the on-disk case so
+    derived patch names match the client. Defaults to 'enus' if none is found."""
+    data = os.path.join(client_dir, "data")
+    try:
+        for d in sorted(os.listdir(data)):
+            p = os.path.join(data, d)
+            if os.path.isdir(p) and any(
+                    f.lower().startswith("locale-") and f.lower().endswith(".mpq")
+                    for f in os.listdir(p)):
+                return d
+    except OSError:
+        pass
+    return "enus"
+
+
+def our_patch_names(locale):
+    """Our output patch filenames in both chains for every custom letter — used
+    to exclude them when reading clean client data (never build on our own or a
+    sibling module's output; legitimate HD base patches are kept)."""
+    names = set()
+    for letter in CUSTOM_PATCH_LETTERS:
+        names.add(("patch-%s.mpq" % letter).lower())               # base chain
+        names.add(("patch-%s-%s.mpq" % (locale, letter)).lower())  # locale chain
+    return names
+
+
+def extract_client_dbc(client_dir, name, dest, locale):
     """Extract `name` from the highest-priority archive that is not one of our
     own module patches (so we build on the clean client base)."""
     import pympq
     inner = "DBFilesClient\\" + name
+    ignore = our_patch_names(locale)
     base = os.path.join(client_dir, "data")
-    locale = os.path.join(client_dir, "data", "enus")
+    locale_dir = os.path.join(base, locale)
     search = []
-    for d in (base, locale):
+    for d in (base, locale_dir):
         if os.path.isdir(d):
             search += [os.path.join(d, f) for f in os.listdir(d)
                        if f.lower().endswith(".mpq")
-                       and f.lower() not in IGNORE_AS_BASE]
+                       and f.lower() not in ignore]
     found = None
     best = (-1, -1)
     for p in search:
@@ -277,13 +315,16 @@ def main():
         return
 
     os.makedirs(args.workdir, exist_ok=True)
-    print("[*] extracting client base DBCs from", args.client)
+    locale = detect_locale(args.client)
+    print("[*] extracting client base DBCs from", args.client,
+          "(locale: %s)" % locale)
     src = extract_client_dbc(args.client, "Item.dbc",
-                             os.path.join(args.workdir, "Item.dbc"))
+                             os.path.join(args.workdir, "Item.dbc"), locale)
     print("    Item.dbc            <- %s" % os.path.basename(src))
     if displays:
         src = extract_client_dbc(args.client, "ItemDisplayInfo.dbc",
-                                 os.path.join(args.workdir, "ItemDisplayInfo.dbc"))
+                                 os.path.join(args.workdir, "ItemDisplayInfo.dbc"),
+                                 locale)
         print("    ItemDisplayInfo.dbc <- %s" % os.path.basename(src))
 
     item_patched = build_item_dbc(args.workdir, items)
@@ -293,12 +334,23 @@ def main():
         print("[*] dry-run: skipping MPQ pack")
         return
 
-    out_mpq = os.path.join(args.client, "data", "enus", PATCH_MPQ_NAME)
+    # Item.dbc / ItemDisplayInfo.dbc are non-localized — the client may load them
+    # from either chain depending on where a rival copy lives — so ship to BOTH the
+    # locale (Data/<locale>/) and base (Data/) chains so our override always wins.
     files = [(item_patched, ITEM_INNER)]
     if idi_patched:
         files.append((idi_patched, IDI_INNER))
-    pack_mpq(files, out_mpq)
-    print("[*] wrote client patch -> %s (%d DBC file(s))" % (out_mpq, len(files)))
+
+    locale_mpq = os.path.join(args.client, "data", locale,
+                              "patch-%s-%s.mpq" % (locale, PATCH_LETTER))
+    pack_mpq(files, locale_mpq)
+    print("[*] wrote locale patch -> %s (%d DBC file(s))"
+          % (locale_mpq, len(files)))
+
+    base_mpq = os.path.join(args.client, "data", "patch-%s.mpq" % PATCH_LETTER)
+    pack_mpq(files, base_mpq)
+    print("[*] wrote base patch   -> %s (%d DBC file(s))"
+          % (base_mpq, len(files)))
 
 
 if __name__ == "__main__":
