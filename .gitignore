@@ -1,0 +1,43 @@
+# Module config — generated from conf/*.conf.dist at build time
+conf/*.conf
+
+# MPQ generator scratch (extracted client DBCs, patched output)
+tools/_work/
+
+# Python bytecode (from the MPQ generator / tooling)
+__pycache__/
+*.pyc
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+CLAUDE.md
