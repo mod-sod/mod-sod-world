@@ -4,6 +4,12 @@ Shared, class-agnostic **Season of Discovery** world content for AzerothCore
 3.3.5a — the encounters and world objects that class modules (`mod-sod-mage`, a
 future `mod-sod-warrior`, …) build on, defined once so nothing is duplicated.
 
+These are developer docs, for module authors building on this content.
+
+> **Just want to play?** You don't need these docs — the
+> [**SoD installer**](https://github.com/bennybroseph/sod-installer) sets everything
+> up in one command.
+
 ## Current content
 
 **The Awakened Lich** (Raven Hill, Duskwood): loot the Dusty Coffer for a
@@ -20,6 +26,6 @@ carries no loot of its own — class modules attach theirs.
 
 ## Install & IDs
 
-See the repository [README](https://github.com/) for build, SQL apply, the
+See the repository [README](https://github.com/bennybroseph/mod-sod-world) for build, SQL apply, the
 client-patch step, and the ID allocations. Spawn coordinates in the base SQL are
 placeholders — capture the real positions in-game with `.gps`.
