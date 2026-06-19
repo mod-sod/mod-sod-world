@@ -64,6 +64,12 @@ spawn), so the custom-creature band is currently unused.
 > **Spawn coordinates** in the base SQL are placeholders — capture the real Raven
 > Hill crypt positions in-game with `.gps` and replace them.
 
+## Contributing
+
+Adding a creature, gameobject, or world item? Start from a skeleton in
+[`templates/`](templates/README.md) — copy it into place and fill the blanks. See
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 GPL-2.0 (see [LICENSE](LICENSE)), matching AzerothCore.
