@@ -5,6 +5,10 @@ Shared, class-agnostic **Season of Discovery** world content for AzerothCore
 runes*, this module owns the **encounters and world objects** those modules build
 on — defined once here so every class module can reuse them without duplication.
 
+> **Just want to play?** The [**SoD installer**](https://github.com/bennybroseph/sod-installer)
+> installs this module (and the class content that uses it) in one command, and
+> builds the client patches. The manual steps below are for building from source.
+
 ## What's in it
 
 **The Awakened Lich (Raven Hill, Duskwood).** A faithful reproduction of the SoD
