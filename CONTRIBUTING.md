@@ -8,7 +8,8 @@ Adding a creature, gameobject, or world item? Start with a template.
    templates live outside `src/` and `data/sql/`, so they're never compiled or
    applied — they're reference only.
 3. Follow **[`docs/`](docs/Home.md)** for the full recipes — adding class loot to a
-   shared creature, and how the consolidated client item patch works.
+   shared creature, and how the consolidated client patch (built by `sod-client`)
+   works.
 
 Source accurate SoD values from the places listed in
 [`templates/README.md`](templates/README.md#sources-of-truth) (wago.tools, Wowhead

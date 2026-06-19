@@ -21,8 +21,8 @@ carries no loot of its own — class modules attach theirs.
 
 - **[Adding class loot](adding-class-loot.md)** — hang your class's rune-notes
   drop off the shared Lich (data only, no C++ coupling).
-- **[Client patch](client-patch.md)** — how the consolidated `Item.dbc` patch
-  works and the per-module `client_items.json` manifest contract.
+- **[Client patch](client-patch.md)** — the `client_items.json` manifest contract
+  and how `sod-client` builds the consolidated patch.
 
 ## Install & IDs
 

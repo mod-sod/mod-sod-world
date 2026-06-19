@@ -25,7 +25,8 @@
 --   210568 Decrepit Phylactery: Common, BoP, Unique, ilvl/req 1,
 --     desc "A heinous aura eminates from the artifact." (SoD verbatim);
 --     SoD icon spell_shadow_devouringplague -> custom client displayid 99000
---     (ItemDisplayInfo row shipped by tools/build_sod_world_patch.py).
+--     (ItemDisplayInfo row shipped in the sod-client consolidated patch, from
+--     tools/client_displays.json).
 --
 -- The Dusty Coffer spawn is at its captured Raven Hill position. The throne and
 -- skeleton spawns start near the captured Bones location; fine-tune them in-game

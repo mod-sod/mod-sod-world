@@ -30,11 +30,12 @@ character only ever sees its own class's notes. See
 
 - **Loot:** a class module adds `creature_loot_template (Entry=212261, Item=<its notes>)`
   plus a Mage/Warrior/... `conditions` row. No C++ linkage.
-- **Client item icons:** this module owns the consolidated client `Item.dbc`
-  patch. Each module drops a `tools/client_items.json` manifest;
-  `tools/build_sod_world_patch.py` aggregates them all into one patch MPQ (WoW
-  replaces whole DBCs per archive, so custom item rows must live in a single
-  file). See [Client patch](docs/client-patch.md).
+- **Client item icons:** this module's custom items declare a
+  `tools/client_items.json` manifest. The standalone
+  [`sod-client`](https://github.com/mod-sod/sod-client) pipeline aggregates every
+  module's manifests (and spell specs) into one patch MPQ (WoW replaces whole DBCs
+  per archive, so custom rows must live in a single file). See
+  [Client patch](docs/client-patch.md).
 
 ## IDs
 
@@ -56,8 +57,9 @@ spawn), so the custom-creature band is currently unused.
 1. Clone into `modules/` alongside the core, build the server with
    `-DMODULES=static` (the module compiles into `worldserver`).
 2. Apply `data/sql/db-world/base/*.sql` to `acore_world`.
-3. Build the client patch: `python tools/build_sod_world_patch.py` (needs
-   `pympq`). Rebuild it whenever a module's `client_items.json` changes.
+3. Build the client patch from a [`sod-client`](https://github.com/mod-sod/sod-client)
+   checkout: `python build_patch.py --server <ac root> --client <wow>` (needs
+   `pympq`). Rebuild whenever any module's `client_items.json` changes.
 4. Configure via `conf/mod_sod_world.conf.dist` (`SodWorld.Enable`, despawn
    timer, summon range).
 

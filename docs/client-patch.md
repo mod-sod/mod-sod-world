@@ -1,6 +1,6 @@
-# The consolidated client item patch
+# Custom item icons & the client patch
 
-## Why one patch
+## Why a patch is needed
 
 The 3.3.5a client resolves a bag item's icon from `Item.dbc` (itemId →
 DisplayInfoID → `ItemDisplayInfo` → icon). A custom item with no `Item.dbc` row
@@ -8,16 +8,20 @@ shows the red "?" icon in bags (vendor and loot frames are unaffected — those
 packets carry the displayid directly).
 
 WoW MPQ patches replace a DBC file **wholesale** — there is no row-level merge
-across archives. So if two modules each shipped their own `Item.dbc` patch, the
+across archives. So if two modules each shipped their own `Item.dbc`, the
 higher-priority MPQ would win and the other module's items would revert to "?".
-Therefore every SoD module's custom item rows must live in **one** `Item.dbc`.
+Every SoD module's custom rows must live in **one** set of DBCs.
 
-`mod-sod-world` owns that consolidation. `mod-sod-mage` patches only `Spell.dbc`
-(a different file, `patch-enus-z.mpq`), so the two patches coexist.
+## Who owns it
+
+The standalone [`sod-client`](https://github.com/mod-sod/sod-client) repo owns the
+consolidation of **all** client DBCs — items *and* spells — into one patch. This
+module (like every content module) contributes **data only**; it builds nothing
+itself.
 
 ## The contract: per-module manifests
 
-Each content module ships data files under its `tools/`:
+This module ships data files under `tools/`:
 
 `client_items.json` — one row per custom item:
 
@@ -46,16 +50,16 @@ existing one whose icon matches, or define a new one in `client_displays.json`
 
 ## Building
 
+From a `sod-client` checkout (needs `pympq`, client closed):
+
 ```bash
-python tools/build_sod_world_patch.py [--client DIR] [--dry-run]
+python build_patch.py --server "<azerothcore root>" --client "<WoW client root>"
 ```
 
-It globs `../mod-sod-*/tools/client_items.json` and `client_displays.json`,
-aggregates them (warning on id conflicts), rebuilds `Item.dbc` /
-`ItemDisplayInfo.dbc` from the clean client base, and packs `patch-enus-y.mpq`.
-Needs `pympq` (StormLib).
-
-> Regenerate **both** patches together when items change: this one
-> (`patch-enus-y.mpq`, items) and `mod-sod-mage`'s (`patch-enus-z.mpq`, spells). A
-> stale spell patch never carries `Item.dbc`, so it won't fight this one — but a
-> stale copy of *this* patch would, so always rebuild after editing any manifest.
+It globs every `mod-sod-*/tools/` for these manifests (and spell specs), rebuilds
+the DBCs from the clean client base, and packs the one `patch-z` (both archive
+chains). Re-run after editing any manifest. The
+[SoD installer](https://github.com/mod-sod/sod-installer) runs it for you. See
+`sod-client`'s
+[architecture doc](https://github.com/mod-sod/sod-client/blob/main/docs/architecture.md)
+for the full contract.

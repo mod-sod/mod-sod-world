@@ -22,6 +22,8 @@ manifest entry.
   it by its `InventoryIcon` in `ItemDisplayInfo.dbc` / on Wowhead Classic.
 - The manifest's `class` / `subclass` / `material` / `display` must mirror the
   `item_template` row.
-- This module **owns the consolidated client patch**. After editing any manifest,
-  rebuild it: `python tools/build_sod_world_patch.py` (client closed). See
+- The consolidated client patch is built by
+  [`sod-client`](https://github.com/mod-sod/sod-client). After editing any manifest,
+  rebuild it from a sod-client checkout: `python build_patch.py --server <ac root>
+  --client <wow>` (client closed). See
   [docs/client-patch.md](../../docs/client-patch.md).
