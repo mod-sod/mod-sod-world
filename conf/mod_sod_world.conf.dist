@@ -36,6 +36,17 @@ SodWorld.Enable = 1
 SodWorld.AwakenedLich.DespawnSeconds = 300
 
 #
+#    SodWorld.AwakenedLich.Level
+#        Description: Level the summoned Awakened Lich spawns at. Its health, mana,
+#                     and damage scale from this level (via the creature template's
+#                     stat modifiers). Applied to the next summon after a change;
+#                     `.reload config` is enough -- no restart.
+#        Default:     25
+#
+
+SodWorld.AwakenedLich.Level = 25
+
+#
 #    SodWorld.Phylactery.SummonRange
 #        Description: How close (yards) the player must be to the Slumbering
 #                     Bones to use the Decrepit Phylactery and summon the Lich.

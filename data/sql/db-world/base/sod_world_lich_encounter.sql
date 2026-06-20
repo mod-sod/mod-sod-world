@@ -38,9 +38,7 @@
 -- -1 (any class summons the Lich). spell 55884 is a harmless existing use-spell,
 -- present only so the client offers "Use"; the ItemScript suppresses it.
 -- =====================================================================
-DELETE FROM `item_template` WHERE `entry` = 210568;
-
-INSERT INTO `item_template`
+REPLACE INTO `item_template`
     (`entry`, `class`, `subclass`, `name`, `displayid`, `Quality`, `Flags`,
      `BuyCount`, `BuyPrice`, `SellPrice`, `InventoryType`,
      `AllowableClass`, `AllowableRace`, `ItemLevel`, `RequiredLevel`,
@@ -62,17 +60,14 @@ VALUES
 -- with lockId 0 and non-quest loot is NOT clickable for normal players, so it must
 -- carry a lock. displayId 10 is a 3.3.5a coffer/chest model.
 -- =====================================================================
-DELETE FROM `gameobject_loot_template` WHERE `Entry` = 411348;
-DELETE FROM `gameobject_template` WHERE `entry` = 411348;
-
-INSERT INTO `gameobject_template`
+REPLACE INTO `gameobject_template`
     (`entry`, `type`, `displayId`, `name`, `size`,
      `Data0`, `Data1`, `Data2`, `Data3`)
 VALUES
     (411348, 3, 10, 'Dusty Coffer', 1.0,
      43, 411348, 0, 1);
 
-INSERT INTO `gameobject_loot_template`
+REPLACE INTO `gameobject_loot_template`
     (`Entry`, `Item`, `Reference`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`)
 VALUES
     (411348, 210568, 0, 100, 0, 1, 0, 1, 1, 'mod-sod-world Dusty Coffer -> Decrepit Phylactery');
@@ -99,27 +94,24 @@ VALUES
 -- valid stand-in is used.
 --
 -- The throne is GAMEOBJECT_TYPE_GENERIC (5) scenery. The skeleton is
--- GAMEOBJECT_TYPE_GOOBER (10) so it is hoverable and shows its "Slumbering Bones"
--- name tooltip (a generic/doodad GO shows none). It has no lock/quest/spell, so
--- clicking it does nothing -- the phylactery used nearby is the real trigger. The
--- summon anchors on the skeleton (FindNearestGameObject 701001), independent of type.
+-- GAMEOBJECT_TYPE_GOOBER (10) so it is hoverable, shows its "Slumbering Bones" name
+-- tooltip (a generic/doodad GO shows none), and is clickable -- its ScriptName
+-- (go_sod_world_slumbering_bones) makes a click summon the Lich for a phylactery
+-- holder. The phylactery used nearby is the other trigger; both anchor the summon
+-- on the skeleton (FindNearestGameObject 701001 for the item path).
 --
 -- NOTE: a GO displayId MUST exist in the server's GameObjectDisplayInfo.dbc or the
 -- spawn is rejected at load ("invalid displayId ... not loaded" in Errors.log).
 -- Valid stone-throne alternatives: 5592, 2810, 2087, 2088, 8238, 8283, 8323, 660, 7744.
 -- =====================================================================
-DELETE FROM `gameobject_template` WHERE `entry` IN (701000, 701001);
--- Drop the former Slumbering Bones creature (replaced by the props above).
-DELETE FROM `creature` WHERE `id1` = 701000;
-DELETE FROM `creature_template_addon` WHERE `entry` = 701000;
-DELETE FROM `creature_template_model` WHERE `CreatureID` = 701000;
-DELETE FROM `creature_template` WHERE `entry` = 701000;
-
-INSERT INTO `gameobject_template`
-    (`entry`, `type`, `displayId`, `name`, `size`)
+-- The bones carry the ScriptName 'go_sod_world_slumbering_bones': clicking them
+-- summons the Lich too (a second, more intuitive trigger), but only for a player
+-- carrying the Decrepit Phylactery -- so the phylactery is still the real key.
+REPLACE INTO `gameobject_template`
+    (`entry`, `type`, `displayId`, `name`, `size`, `ScriptName`)
 VALUES
-    (701000, 5, 5592, 'Broken Stone Throne', 1.0),
-    (701001, 10, 7308, 'Slumbering Bones', 1.0);
+    (701000, 5, 5592, 'Broken Stone Throne', 1.0, ''),
+    (701001, 10, 7308, 'Slumbering Bones', 1.0, 'go_sod_world_slumbering_bones');
 
 -- Spawn seed near the captured Bones location. INSERT IGNORE: re-applying never
 -- overwrites in-game position/rotation (.gobject move/turn); it only seeds a fresh
@@ -151,11 +143,7 @@ VALUES
 -- 710, only hits Demon/Elemental), so the Lich casts Shadow Bolt (9613) for a
 -- functional necromantic fight. SmartAI below.
 -- =====================================================================
-DELETE FROM `smart_scripts` WHERE `entryorguid` = 212261 AND `source_type` = 0;
-DELETE FROM `creature_template_model` WHERE `CreatureID` = 212261;
-DELETE FROM `creature_template` WHERE `entry` = 212261;
-
-INSERT INTO `creature_template`
+REPLACE INTO `creature_template`
     (`entry`, `name`, `subname`,
      `minlevel`, `maxlevel`, `faction`, `npcflag`,
      `speed_walk`, `speed_run`, `rank`,
@@ -170,14 +158,17 @@ VALUES
      'SmartAI', 0,
      6, 1, 1, 1, 0);
 
-INSERT INTO `creature_template_model`
+REPLACE INTO `creature_template_model`
     (`CreatureID`, `Idx`, `CreatureDisplayID`, `DisplayScale`, `Probability`)
 VALUES
     (212261, 0, 17444, 0.5, 1.0);
 
 -- SmartAI: in combat, cast Shadow Bolt (9613) on the current victim every 3-4.5s.
 -- event_type 0 = UPDATE_IC, action_type 11 = CAST, target_type 2 = VICTIM.
-INSERT INTO `smart_scripts`
+-- Single row (id 0); REPLACE keys on the full PK, so if this script ever grows to
+-- multiple rows and later shrinks, remove the retired id(s) by hand (REPLACE alone
+-- won't purge them).
+REPLACE INTO `smart_scripts`
     (`entryorguid`, `source_type`, `id`, `link`,
      `event_type`, `event_phase_mask`, `event_chance`, `event_flags`,
      `event_param1`, `event_param2`, `event_param3`, `event_param4`,

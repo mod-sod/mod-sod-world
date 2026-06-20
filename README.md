@@ -17,8 +17,10 @@ rune-acquisition encounter:
 1. Loot the **Dusty Coffer** in the north-eastern Raven Hill crypt → a **Decrepit
    Phylactery**.
 2. *Use* the phylactery next to the **Slumbering Bones** — a seated skeleton
-   wasting away on a broken stone throne in the western crypt → it summons a level
-   25 elite **Awakened Lich**. The phylactery is not consumed (reusable).
+   wasting away on a broken stone throne in the western crypt — **or click the bones
+   directly while carrying the phylactery** → it summons an elite **Awakened Lich**
+   (level 25 by default; set `SodWorld.AwakenedLich.Level`). The phylactery is not
+   consumed (reusable).
 3. Kill the Lich → it drops each installed class's rune notes.
 
 The Lich is the shared piece: it carries **no loot of its own**. Each class
