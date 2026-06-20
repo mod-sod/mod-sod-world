@@ -32,11 +32,21 @@ faction), standing in Stormwind's Trade District. She is the
 shared, class-agnostic front-end for the rune-engraving debug menu — she reuses
 `mod-rune-engraving`'s `npc_rune_engraver` gossip — and is flagged as a vendor
 (she'll stock SoD goods later; nothing yet). She replaces the engine's old
-placeholder "Rune Engraver". Her **faction** is a custom row shipped as `*_dbc`
-overrides (server) + a `sod-client` patch entry (client). Her **look** uses a
-stock human-female officer display — the 3.3.5a *HD* client crashes baking
+placeholder "Rune Engraver". Her **faction** is a real reputation faction shipped
+as `*_dbc` overrides (server) + a `sod-client` patch entry (client). Her **look**
+uses a stock human-female officer display — the 3.3.5a *HD* client crashes baking
 hand-authored character geosets, so an exact custom blue outfit would need a
 pre-baked texture rather than runtime geosets.
+
+**"A Full Shipment" — repeatable supply turn-ins.** Hand Elaine a **Supply
+Shipment** crate for gold, XP, and Azeroth Commerce Authority reputation. There
+are four crate tiers (one per SoD phase, item level 10/25/40/50), each its own
+repeatable quest. Gold and XP scale to your level; reputation per turn-in is fixed
+per tier (300 / 800 / 1000 / 1850). Faithful to SoD, a quest only appears while
+you are actually carrying that tier's crate. The four Supply Shipment items exist
+as turn-in goods (with an `inv_crate_03` bag icon); acquiring them in the world
+(Waylaid Supplies drops / "Replace Supplies" crafting) is not yet implemented —
+use GM `.additem` to test for now.
 
 ## How it couples to class modules (data only)
 
@@ -53,8 +63,11 @@ pre-baked texture rather than runtime geosets.
 
 Templates that exist in SoD use the **real SoD id** (greppable to wowhead, and so
 modules never negotiate bands): Awakened Lich `212261`, Elaine Compton `213077`,
-Dusty Coffer `411348`, Decrepit Phylactery `210568`, faction Azeroth Commerce
-Authority `2586`. IDs with no SoD counterpart are custom:
+Dusty Coffer `411348`, Decrepit Phylactery `210568`, Supply Shipment crates
+`211367` / `211839` / `217337` / `221008`, "A Full Shipment" quests `78612` /
+`79103` / `80309` / `82309` (P1–P4), faction Azeroth Commerce Authority `2586`
+(a reputation faction, `ReputationIndex 105`). IDs with no SoD counterpart are
+custom:
 
 | Kind | Allocation |
 |------|------------|

@@ -38,15 +38,30 @@
 -- No DELETEs.
 
 -- =====================================================================
--- Faction "Azeroth Commerce Authority" (faction_dbc 2586). Non-reputation
--- (ReputationIndex -1): it only provides the unit-tooltip faction name. The
--- server reads all 57 columns; unspecified ones default to 0/NULL (correct for a
--- no-rep faction). The client shows this name only with the sod-client patch.
+-- Faction "Azeroth Commerce Authority" (faction_dbc 2586) -- a real, trackable
+-- reputation faction (the "A Full Shipment" turn-ins in sod_world_supply_shipments.sql
+-- grant rep here). The 3.3.5a client tracks 128 reputation slots
+-- (SMSG_INITIALIZE_FACTIONS sends ReputationIndex 0-127); stock factions use
+-- 0-104, so 105 is free. Columns mirror a stock visible Wrath faction (Argent
+-- Crusade 1106): RaceMask 1101 = Alliance races (Horde never sees it, matching
+-- Elaine's Alliance alignment), ClassMask 0 = all classes, Base 0 = starts
+-- Neutral, Flags 16 = peace-forced (the VISIBLE bit is set by the server on the
+-- first rep gain). ParentFactionID 1118 = the "Classic" rep-pane category.
+-- Unspecified columns default to 0 (slots 2-4, parent mod/cap). The server reads
+-- this via the generic faction_dbc override; the matching CLIENT Faction.dbc row
+-- (with the same rep fields) ships in the sod-client patch -- without it the rep
+-- pane entry will not render. A worldserver RESTART reloads faction_dbc.
 -- =====================================================================
 REPLACE INTO `faction_dbc`
-    (`ID`, `ReputationIndex`, `Name_Lang_enUS`, `Name_Lang_Mask`)
+    (`ID`, `ReputationIndex`,
+     `ReputationRaceMask_1`, `ReputationClassMask_1`,
+     `ReputationBase_1`, `ReputationFlags_1`,
+     `ParentFactionID`, `Name_Lang_enUS`, `Name_Lang_Mask`)
 VALUES
-    (2586, -1, 'Azeroth Commerce Authority', 16712190);
+    (2586, 105,
+     1101, 0,
+     0, 16,
+     1118, 'Azeroth Commerce Authority', 16712190);
 
 -- FactionTemplate 2586 -> Faction 2586. Reactions cloned from Stormwind (template
 -- 12): FactionGroup 2 (Alliance), FriendGroup 2 (Alliance), EnemyGroup 4 (Horde),
@@ -61,9 +76,10 @@ VALUES
      2586, 0, 0, 0);
 
 -- =====================================================================
--- Elaine Compton (creature 213077). Level 30 humanoid, gossip + vendor, neutral to
--- attack (non-attackable) but Alliance-aligned via faction 2586. Gossip is the
--- engine's rune debug menu via ScriptName 'npc_rune_engraver'.
+-- Elaine Compton (creature 213077). Level 30 humanoid, gossip + quest giver +
+-- vendor, neutral to attack (non-attackable) but Alliance-aligned via faction
+-- 2586. Gossip is the engine's rune debug menu via ScriptName 'npc_rune_engraver';
+-- QUESTGIVER is required so her "A Full Shipment" turn-ins can be completed.
 -- =====================================================================
 REPLACE INTO `creature_template`
     (`entry`, `name`, `subname`,
@@ -73,7 +89,7 @@ REPLACE INTO `creature_template`
      `ScriptName`)
 VALUES
     (213077, 'Elaine Compton', 'Supply Officer',
-     30, 30, 2586, 129,      -- npcflag 129 = GOSSIP(1) | VENDOR(128)
+     30, 30, 2586, 131,      -- npcflag 131 = GOSSIP(1) | QUESTGIVER(2) | VENDOR(128)
      1.0, 1.14286,
      1, 2, 0, 7, 2,          -- unit_class warrior, NON_ATTACKABLE, humanoid, CIVILIAN
      'npc_rune_engraver');
