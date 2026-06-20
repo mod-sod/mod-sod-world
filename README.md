@@ -43,10 +43,14 @@ Shipment** crate for gold, XP, and Azeroth Commerce Authority reputation. There
 are four crate tiers (one per SoD phase, item level 10/25/40/50), each its own
 repeatable quest. Gold and XP scale to your level; reputation per turn-in is fixed
 per tier (300 / 800 / 1000 / 1850). Faithful to SoD, a quest only appears while
-you are actually carrying that tier's crate. The four Supply Shipment items exist
-as turn-in goods (with an `inv_crate_03` bag icon); acquiring them in the world
-(Waylaid Supplies drops / "Replace Supplies" crafting) is not yet implemented —
-use GM `.additem` to test for now.
+you are actually carrying that tier's crate (with an `inv_crate_03` bag icon).
+
+The crates **drop from SoD world chests** — each tier is added to the loot of the
+phase-appropriate chests (e.g. P1 from Battered Chest `106319`, P4 from Solid Chest
+`153451`). Drop rates are admin-tunable in the config
+(`SodWorld.SupplyDrop.P1Chance`…`P4Chance`, default 10/10/10/5%) and applied live on
+`.reload config`. The crate drops ready to turn in — SoD's fuller "Waylaid Supplies →
+Replace Supplies crafting" chain is intentionally out of scope.
 
 ## How it couples to class modules (data only)
 

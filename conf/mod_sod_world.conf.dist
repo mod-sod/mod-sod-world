@@ -43,3 +43,19 @@ SodWorld.AwakenedLich.DespawnSeconds = 300
 #
 
 SodWorld.Phylactery.SummonRange = 10
+
+#
+#    SodWorld.SupplyDrop.P{1..4}Chance
+#        Description: Percent chance for a "Supply Shipment" crate to drop when a
+#                     player opens one of the SoD world chests wired up for that
+#                     phase (P1 item level 10, P2 25, P3 40, P4 50). These tune the
+#                     Chance of the loot rows seeded by sod_world_supply_drops.sql;
+#                     applied at startup and on `.reload config`. 0 disables that
+#                     tier's drop. When SodWorld.Enable = 0 all four are forced to 0.
+#        Default:     P1 10, P2 10, P3 10, P4 5
+#
+
+SodWorld.SupplyDrop.P1Chance = 10
+SodWorld.SupplyDrop.P2Chance = 10
+SodWorld.SupplyDrop.P3Chance = 10
+SodWorld.SupplyDrop.P4Chance = 5
