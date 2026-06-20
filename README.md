@@ -26,6 +26,18 @@ module hangs its own `creature_loot_template` row off it (Entry `212261`), so a
 character only ever sees its own class's notes. See
 [Adding class loot](docs/adding-class-loot.md).
 
+**Elaine Compton — the shared supply / debug NPC.** A Level 30 Human Female
+`<Supply Officer>` of the **Azeroth Commerce Authority** (a friendly Alliance
+faction), standing in Stormwind's Trade District. She is the
+shared, class-agnostic front-end for the rune-engraving debug menu — she reuses
+`mod-rune-engraving`'s `npc_rune_engraver` gossip — and is flagged as a vendor
+(she'll stock SoD goods later; nothing yet). She replaces the engine's old
+placeholder "Rune Engraver". Her **faction** is a custom row shipped as `*_dbc`
+overrides (server) + a `sod-client` patch entry (client). Her **look** uses a
+stock human-female officer display — the 3.3.5a *HD* client crashes baking
+hand-authored character geosets, so an exact custom blue outfit would need a
+pre-baked texture rather than runtime geosets.
+
 ## How it couples to class modules (data only)
 
 - **Loot:** a class module adds `creature_loot_template (Entry=212261, Item=<its notes>)`
@@ -40,17 +52,21 @@ character only ever sees its own class's notes. See
 ## IDs
 
 Templates that exist in SoD use the **real SoD id** (greppable to wowhead, and so
-modules never negotiate bands): Awakened Lich `212261`, Dusty Coffer `411348`,
-Decrepit Phylactery `210568`. IDs with no SoD counterpart are custom:
+modules never negotiate bands): Awakened Lich `212261`, Elaine Compton `213077`,
+Dusty Coffer `411348`, Decrepit Phylactery `210568`, faction Azeroth Commerce
+Authority `2586`. IDs with no SoD counterpart are custom:
 
 | Kind | Allocation |
 |------|------------|
-| Custom gameobjects (no SoD id) | `701000`–`701099` (Broken Stone Throne `701000`, Slumbering Bones `701001`) |
-| Gameobject spawn guids | `8821000`+ (Coffer, Throne, Skeleton) |
+| Custom gameobjects (no SoD id) | `701000`–`701099` (Throne `701000`, Bones `701001`) |
+| Custom `CreatureDisplayInfo` / `…Extra` | `700000`+ (reserved; Elaine uses a stock display) |
 | Custom `ItemDisplayInfo` ids | `99000`+ (Phylactery icon `99000`) |
+| Creature spawn guids | `8820000`+ (Elaine `8820001`) |
+| Gameobject spawn guids | `8821000`+ (Coffer/Throne/Skeleton) |
 
-The only creature is the Awakened Lich (real SoD id `212261`, summon-only — no
-spawn), so the custom-creature band is currently unused.
+Custom creature displays and factions are delivered as core `*_dbc` override rows
+(server) plus `sod-client` patch rows (client) — see
+[Client patch](docs/client-patch.md).
 
 ## Install
 

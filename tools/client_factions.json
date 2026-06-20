@@ -1,0 +1,17 @@
+[
+  {
+    "id": 2586,
+    "rep_index": -1,
+    "name": "Azeroth Commerce Authority",
+    "template": {
+      "id": 2586,
+      "faction": 2586,
+      "flags": 0,
+      "faction_group": 2,
+      "friend_group": 2,
+      "enemy_group": 4,
+      "enemies": [0, 0, 0, 0],
+      "friends": [2586, 0, 0, 0]
+    }
+  }
+]
