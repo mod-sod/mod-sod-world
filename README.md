@@ -51,8 +51,9 @@ turn-in is fixed per tier (300 / 800 / 1000 / 1850). Faithful to SoD, a quest on
 appears while you are carrying that tier's crate (with an `inv_crate_03` bag icon).
 
 **Supply-officer stock is reputation-tiered.** The officers sell a shared list — so far
-a 10-slot **Small Courier Satchel** (Friendly) and a 12-slot **Sturdy Courier Bag**
-(Honored). As in SoD, each item stays hidden until you
+the bags **Small Courier Satchel** (10-slot, Friendly) and **Sturdy Courier Bag**
+(12-slot, Honored), plus three Friendly equipment pieces (**Provisioner's Gloves**,
+**Courier Treads**, **Hoist Strap**). As in SoD, each item stays hidden until you
 reach its required standing with the city's supply faction — there is no "Requires
 Friendly" tooltip; the item simply isn't offered until you qualify, then appears for
 sale. Different items can sit at different tiers (Friendly, Honored, Exalted), and below
@@ -86,7 +87,8 @@ modules never negotiate bands): Awakened Lich `212261`; supply officers Elaine
 Compton `213077`, Marcy Baker `214101`, Tamelyn Aldridge `214099` (Alliance) and
 Jornah `214070`, Gishah `214098`, Dokimi `214096` (Horde); Dusty Coffer `411348`,
 Decrepit Phylactery `210568`, Small Courier Satchel `211382`, Sturdy Courier Bag
-`211384`, Supply Shipment crates
+`211384`, supply-officer equipment Provisioner's Gloves `212588` / Courier Treads
+`212589` / Hoist Strap `212590`, Supply Shipment crates
 `211367` / `211839` / `217337` / `221008`, "A Full Shipment" quests `78612` /
 `79103` / `80309` / `82309` (P1–P4); reputation factions Azeroth Commerce Authority
 `2586` (`ReputationIndex 105`, Alliance) and Durotar Supply and Logistics `2587`
