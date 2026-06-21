@@ -39,9 +39,9 @@
 -- SoD. Repeatable (quest_template_addon.SpecialFlags 1) and consuming one crate on
 -- turn-in, each quest vanishes after completion until another crate is acquired.
 --
--- The officers, their flags, and the two supply factions live in
--- sod_world_elaine_compton.sql and sod_world_jornah.sql (those upgrade 2586 / 2587 to
--- real, trackable reputation factions so the rep rewards register and show).
+-- The officers, their flags, and the two supply factions (2586 / 2587, real
+-- trackable reputation factions so the rep rewards register and show) all live in
+-- sod_world_supply_officers.sql.
 --
 -- Idempotent: REPLACE INTO for templates; INSERT IGNORE never used here. No DELETEs.
 
@@ -122,15 +122,27 @@ VALUES
     (80309, 65),
     (82309, 65);
 
--- Both officers start AND end every quest (Elaine 213077 Alliance, Jornah 214070
--- Horde). A quest may have multiple starter/ender NPCs -- the same quest, shared.
+-- Every capital-city supply officer starts AND ends every quest (Alliance: Elaine
+-- 213077 Stormwind, Marcy Baker 214101 Darnassus, Tamelyn Aldridge 214099 Ironforge;
+-- Horde: Jornah 214070 Orgrimmar, Gishah 214098 Undercity, Dokimi 214096 Thunder
+-- Bluff). A quest may have multiple starter/ender NPCs -- the same quest, shared.
+-- (The officer creatures live in sod_world_supply_officers.sql; this is just the
+-- quest contract.)
 REPLACE INTO `creature_queststarter` (`id`, `quest`) VALUES
     (213077, 78612), (213077, 79103), (213077, 80309), (213077, 82309),
-    (214070, 78612), (214070, 79103), (214070, 80309), (214070, 82309);
+    (214070, 78612), (214070, 79103), (214070, 80309), (214070, 82309),
+    (214101, 78612), (214101, 79103), (214101, 80309), (214101, 82309),
+    (214099, 78612), (214099, 79103), (214099, 80309), (214099, 82309),
+    (214098, 78612), (214098, 79103), (214098, 80309), (214098, 82309),
+    (214096, 78612), (214096, 79103), (214096, 80309), (214096, 82309);
 
 REPLACE INTO `creature_questender` (`id`, `quest`) VALUES
     (213077, 78612), (213077, 79103), (213077, 80309), (213077, 82309),
-    (214070, 78612), (214070, 79103), (214070, 80309), (214070, 82309);
+    (214070, 78612), (214070, 79103), (214070, 80309), (214070, 82309),
+    (214101, 78612), (214101, 79103), (214101, 80309), (214101, 82309),
+    (214099, 78612), (214099, 79103), (214099, 80309), (214099, 82309),
+    (214098, 78612), (214098, 79103), (214098, 80309), (214098, 82309),
+    (214096, 78612), (214096, 79103), (214096, 80309), (214096, 82309);
 
 -- Gate: each quest is OFFERED only while the player holds >=1 of that tier's
 -- Supply Shipment. SourceType 19 = CONDITION_SOURCE_TYPE_QUEST_AVAILABLE,
