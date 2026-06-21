@@ -48,5 +48,15 @@
     "display": 8928,
     "invtype": 0,
     "sheath": 0
+  },
+  {
+    "id": 211382,
+    "name": "Small Courier Satchel",
+    "class": 1,
+    "subclass": 0,
+    "material": 0,
+    "display": 99001,
+    "invtype": 18,
+    "sheath": 0
   }
 ]

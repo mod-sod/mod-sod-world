@@ -18,6 +18,8 @@
 // Each script source exposes one AddSC_* function; declare them here.
 void AddSC_item_sod_world_phylactery();
 void AddSC_world_sod_world_supply_drops();
+void AddSC_player_sod_world_supply_quests();
+void AddSC_npc_sod_world_supply_officer();
 
 // Entry point invoked by the module loader. The name must be
 // Add<folder-name-with-underscores>Scripts — the build generates the call.
@@ -25,4 +27,6 @@ void Addmod_sod_worldScripts()
 {
     AddSC_item_sod_world_phylactery();
     AddSC_world_sod_world_supply_drops();
+    AddSC_player_sod_world_supply_quests();
+    AddSC_npc_sod_world_supply_officer();
 }

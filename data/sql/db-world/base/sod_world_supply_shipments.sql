@@ -1,41 +1,49 @@
 -- mod-sod-world: Season of Discovery "A Full Shipment" repeatable supply turn-ins.
 --
--- Elaine Compton (creature 213077, the shared Azeroth Commerce Authority supply
--- officer) accepts a "Supply Shipment" crate for gold, XP, and ACA reputation.
--- SoD ships four Supply Shipment items, one per phase/level bracket, so there are
--- four repeatable quests -- one per crate tier.
+-- Four repeatable supply turn-ins (one per Supply Shipment crate tier) shared by
+-- BOTH supply officers: Elaine Compton (creature 213077, Alliance) and Jornah
+-- (214070, Horde) each START and END all four -- the same quests, no duplication.
 --
--- Real SoD ids are reused where free (verified against the live DB + on-disk
--- DBCs): the four Supply Shipment items 211367 / 211839 / 217337 / 221008, and
--- the four "A Full Shipment" quests 78612 (P1) / 79103 (P2) / 80309 (P3) /
--- 82309 (P4). Wowhead's item "provided for" links point at the wrong tiers, so
--- the quest->tier mapping here is by reputation value, confirmed against the
--- nether.wowhead.com tooltip endpoint (all four are named "A Full Shipment").
+-- AUTO-COMPLETE flow (QUEST_FLAGS_AUTOCOMPLETE, QuestType 0): talking to the officer
+-- while carrying that tier's crate completes the quest in one interaction (gossip ->
+-- "Do you have something for me?" request frame -> Complete) -- no accept-then-return.
+-- The crate is still required and consumed (CanCompleteRepeatableQuest checks the
+-- RequiredItemId; RewardQuest destroys it), and the option shows the repeatable blue
+-- "!". This matches real SoD (verified in-game).
 --
--- Sourced values (wago.tools wow_classic_era 1.15.8.67156 + Wowhead):
---   Items: Trade Goods (class 7 / subclass 0), Material 0, Quality 2 (uncommon),
---     BoP (bonding 1), non-stackable, RequiredLevel 1, icon INV_Crate_03
---     (FileDataID 132763 -> stock displayid 8928), tooltip "Deliver to a supply
---     officer for a substantial reward." ItemLevel marks the bracket: 10/25/40/50.
---   Reputation per turn-in (Azeroth Commerce Authority 2586): P1 300, P2 800,
---     P3 1000, P4 1850. The core stores rep x100 in RewardFactionOverride1
---     (Player::RewardReputation does override / 100), so 30000/80000/100000/185000.
---   Gold + XP scale to the turning-in player's level (faithful to SoD): QuestLevel
---     = -1 scales XP via QuestXP, and RewardMoneyDifficulty scales gold via
---     quest_money_reward. RewardXPDifficulty / RewardMoneyDifficulty (5) are
---     tunable knobs -- adjust if the in-game reward feels off.
+-- REPUTATION IS GRANTED BY TEAM IN C++ (src/player_sod_world_supply_quests.cpp), NOT
+-- here: a turn-in grants the player's OWN supply faction only -- Alliance -> Azeroth
+-- Commerce Authority (2586), Horde -> Durotar Supply and Logistics (2587), +300 / 800
+-- / 1000 / 1850 by tier. Wowhead lists BOTH factions on the quest, but that is the raw
+-- quest data; SoD filters it to the player's team -- granting rep with a faction the
+-- player can never interact with is wrong. So RewardFactionID1 = 0 (no built-in rep).
 --
--- The quests are gated to appear ONLY while the player is carrying that tier's
--- crate (conditions: CONDITION_SOURCE_TYPE_QUEST_AVAILABLE 19 + CONDITION_ITEM 2),
--- matching SoD -- they are not standing quests you hold empty. Being repeatable
--- (quest_template_addon.SpecialFlags 1) and consuming one crate on turn-in, each
--- quest vanishes after completion until another crate is acquired.
+-- Real SoD ids are reused (verified against the live DB + on-disk DBCs): the four
+-- Supply Shipment items 211367 / 211839 / 217337 / 221008, and the four
+-- "A Full Shipment" quests 78612 (P1) / 79103 (P2) / 80309 (P3) / 82309 (P4).
 --
--- Elaine herself, her vendor/gossip flags, and the ACA faction live in
--- sod_world_elaine_compton.sql (that file also upgrades faction 2586 to a real,
--- trackable reputation faction so these rep rewards register and show in the pane).
+-- Sourced values (Wowhead quest=78612...82309): QuestLevel 9 / 25 / 40 / 50,
+-- RewardMoney 600 / 3000 / 120000 / 154000 (fixed, faithful to SoD -- no scaling),
+-- MinLevel 1, rep 300 / 800 / 1000 / 1850. XP is UNSOURCEABLE (Wowhead shows 80/200
+-- for P1/P2 and no value for P3/P4; no reliable source) -- these read as gold-only
+-- quests, so XP is forced to 0 in the C++ hook (commented there).
 --
--- Idempotent: REPLACE INTO throughout (brand-new custom ids). No DELETEs.
+-- Authentic text (confirmed in-game): name "A Full Shipment"; request/progress
+-- "Do you have something for me?"; reward "Everything's accounted for! Thank you,
+-- $N. These supplies are critical for the front lines." LogDescription/
+-- QuestDescription are not shown for an auto-complete quest, but are set to a clean
+-- neutral line so no stale Elaine/Stormwind text lingers in the DB.
+--
+-- The quests are gated to appear ONLY while the player carries that tier's crate
+-- (conditions: CONDITION_SOURCE_TYPE_QUEST_AVAILABLE 19 + CONDITION_ITEM 2), matching
+-- SoD. Repeatable (quest_template_addon.SpecialFlags 1) and consuming one crate on
+-- turn-in, each quest vanishes after completion until another crate is acquired.
+--
+-- The officers, their flags, and the two supply factions live in
+-- sod_world_elaine_compton.sql and sod_world_jornah.sql (those upgrade 2586 / 2587 to
+-- real, trackable reputation factions so the rep rewards register and show).
+--
+-- Idempotent: REPLACE INTO for templates; INSERT IGNORE never used here. No DELETEs.
 
 -- =====================================================================
 -- The four Supply Shipment crates (turn-in items). class 7 = Trade Goods.
@@ -61,15 +69,11 @@ VALUES
      0, 1, 1, 0, 0, 'Deliver to a supply officer for a substantial reward.');
 
 -- =====================================================================
--- The four "A Full Shipment" quests. QuestType 2 + QuestLevel -1 (player-scaled
--- XP); RewardMoneyDifficulty 5 (player-scaled gold); RewardFactionID1 2586 with
--- RewardFactionOverride1 = rep x100. RequiredItemId1 = the tier's crate (count 1,
--- consumed on turn-in). QuestSortID 1519 = Stormwind City. Text is the same per
--- tier (one "A Full Shipment" flow); rewards differ. QuestDescription/
--- LogDescription are authored (the SoD accept text is not reproduced verbatim).
--- In AzerothCore the turn-in text fields live in side tables, not quest_template:
--- the progress/"return" text is quest_request_items.CompletionText and the
--- thank-you is quest_offer_reward.RewardText (both REPLACEd below).
+-- The four "A Full Shipment" quests. QuestType 0 + Flags 65536 = auto-complete
+-- (instant turn-in on talk). QuestLevel/RewardMoney are authentic fixed values;
+-- MinLevel 1. RewardFactionID1 0 -- rep is granted by team in the C++ hook, NOT
+-- here. RewardXPDifficulty 0 (the hook also forces 0 XP). RequiredItemId1 = the
+-- tier's crate (count 1, consumed on turn-in). QuestSortID 0 = faction-neutral.
 -- =====================================================================
 REPLACE INTO `quest_template`
     (`ID`, `QuestType`, `QuestLevel`, `MinLevel`, `QuestSortID`, `QuestInfoID`,
@@ -78,40 +82,38 @@ REPLACE INTO `quest_template`
      `RequiredItemId1`, `RequiredItemCount1`,
      `LogTitle`, `LogDescription`, `QuestDescription`)
 VALUES
-    (78612, 2, -1, 1, 1519, 0, 0, 0, 5, 5, 0, 2586, 30000, 211367, 1,
+    (78612, 0, 9, 1, 0, 0, 0, 65536, 0, 0, 600, 0, 0, 211367, 1,
      'A Full Shipment',
-     'Bring a Supply Shipment to Elaine Compton in Stormwind.',
-     'The Azeroth Commerce Authority keeps Stormwind stocked, and that means moving a great many crates. If you have a Supply Shipment ready, hand it over and I will see you are paid for your trouble.$B$BEvery shipment helps, $N. The Authority remembers those who keep the wheels turning.'),
-    (79103, 2, -1, 25, 1519, 0, 0, 0, 5, 5, 0, 2586, 80000, 211839, 1,
+     'Bring a Supply Shipment to a supply officer.',
+     'Deliver a Supply Shipment to a supply officer for a substantial reward.'),
+    (79103, 0, 25, 1, 0, 0, 0, 65536, 0, 0, 3000, 0, 0, 211839, 1,
      'A Full Shipment',
-     'Bring a Supply Shipment to Elaine Compton in Stormwind.',
-     'The Azeroth Commerce Authority keeps Stormwind stocked, and that means moving a great many crates. If you have a Supply Shipment ready, hand it over and I will see you are paid for your trouble.$B$BEvery shipment helps, $N. The Authority remembers those who keep the wheels turning.'),
-    (80309, 2, -1, 40, 1519, 0, 0, 0, 5, 5, 0, 2586, 100000, 217337, 1,
+     'Bring a Supply Shipment to a supply officer.',
+     'Deliver a Supply Shipment to a supply officer for a substantial reward.'),
+    (80309, 0, 40, 1, 0, 0, 0, 65536, 0, 0, 120000, 0, 0, 217337, 1,
      'A Full Shipment',
-     'Bring a Supply Shipment to Elaine Compton in Stormwind.',
-     'The Azeroth Commerce Authority keeps Stormwind stocked, and that means moving a great many crates. If you have a Supply Shipment ready, hand it over and I will see you are paid for your trouble.$B$BEvery shipment helps, $N. The Authority remembers those who keep the wheels turning.'),
-    (82309, 2, -1, 50, 1519, 0, 0, 0, 5, 5, 0, 2586, 185000, 221008, 1,
+     'Bring a Supply Shipment to a supply officer.',
+     'Deliver a Supply Shipment to a supply officer for a substantial reward.'),
+    (82309, 0, 50, 1, 0, 0, 0, 65536, 0, 0, 154000, 0, 0, 221008, 1,
      'A Full Shipment',
-     'Bring a Supply Shipment to Elaine Compton in Stormwind.',
-     'The Azeroth Commerce Authority keeps Stormwind stocked, and that means moving a great many crates. If you have a Supply Shipment ready, hand it over and I will see you are paid for your trouble.$B$BEvery shipment helps, $N. The Authority remembers those who keep the wheels turning.');
+     'Bring a Supply Shipment to a supply officer.',
+     'Deliver a Supply Shipment to a supply officer for a substantial reward.');
 
--- Turn-in / progress text (shown when you talk to Elaine to hand the crate over);
--- this is the SoD tooltip line verbatim.
+-- Request / progress text (the auto-complete frame body). Authentic SoD line.
 REPLACE INTO `quest_request_items` (`ID`, `CompletionText`) VALUES
     (78612, 'Do you have something for me?'),
     (79103, 'Do you have something for me?'),
     (80309, 'Do you have something for me?'),
     (82309, 'Do you have something for me?');
 
--- Reward text (shown on the completion frame).
+-- Reward text (the completion frame). Authentic SoD line (confirmed in-game).
 REPLACE INTO `quest_offer_reward` (`ID`, `RewardText`) VALUES
-    (78612, 'The Authority thanks you, $N. Keep them coming.'),
-    (79103, 'The Authority thanks you, $N. Keep them coming.'),
-    (80309, 'The Authority thanks you, $N. Keep them coming.'),
-    (82309, 'The Authority thanks you, $N. Keep them coming.');
+    (78612, 'Everything''s accounted for! Thank you, $N. These supplies are critical for the front lines.'),
+    (79103, 'Everything''s accounted for! Thank you, $N. These supplies are critical for the front lines.'),
+    (80309, 'Everything''s accounted for! Thank you, $N. These supplies are critical for the front lines.'),
+    (82309, 'Everything''s accounted for! Thank you, $N. These supplies are critical for the front lines.');
 
--- Repeatable (SpecialFlags 1) + no-rep-spillover (64) = 65, so the standalone
--- custom faction never spills rep into a faction group it does not belong to.
+-- Repeatable (SpecialFlags 1) + no-rep-spillover (64) = 65.
 REPLACE INTO `quest_template_addon`
     (`ID`, `SpecialFlags`)
 VALUES
@@ -120,16 +122,20 @@ VALUES
     (80309, 65),
     (82309, 65);
 
--- Elaine (213077) both starts and ends each quest.
+-- Both officers start AND end every quest (Elaine 213077 Alliance, Jornah 214070
+-- Horde). A quest may have multiple starter/ender NPCs -- the same quest, shared.
 REPLACE INTO `creature_queststarter` (`id`, `quest`) VALUES
-    (213077, 78612), (213077, 79103), (213077, 80309), (213077, 82309);
+    (213077, 78612), (213077, 79103), (213077, 80309), (213077, 82309),
+    (214070, 78612), (214070, 79103), (214070, 80309), (214070, 82309);
 
 REPLACE INTO `creature_questender` (`id`, `quest`) VALUES
-    (213077, 78612), (213077, 79103), (213077, 80309), (213077, 82309);
+    (213077, 78612), (213077, 79103), (213077, 80309), (213077, 82309),
+    (214070, 78612), (214070, 79103), (214070, 80309), (214070, 82309);
 
 -- Gate: each quest is OFFERED only while the player holds >=1 of that tier's
 -- Supply Shipment. SourceType 19 = CONDITION_SOURCE_TYPE_QUEST_AVAILABLE,
 -- ConditionType 2 = CONDITION_ITEM (Value1 item, Value2 count, Value3 bank=0).
+-- NPC-agnostic -- applies to both Elaine and Jornah.
 REPLACE INTO `conditions`
     (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`,
      `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`,

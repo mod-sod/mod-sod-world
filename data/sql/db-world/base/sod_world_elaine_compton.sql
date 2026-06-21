@@ -1,8 +1,8 @@
--- mod-sod-world: Elaine Compton, the shared class-agnostic supply/debug NPC.
--- Replaces the old placeholder "Rune Engraver" (mod-rune-engraving entry 700000,
--- a reused City Guard). Elaine keeps the SAME debug gossip by reusing the engine's
--- ScriptName 'npc_rune_engraver' (data-only coupling: mod-rune-engraving owns the
--- C++); she is also flagged as a vendor (sells nothing yet).
+-- mod-sod-world: Elaine Compton, the Alliance supply officer.
+-- A quest giver (the "A Full Shipment" turn-ins) and a vendor, driven by the
+-- sod-world gossip ScriptName 'npc_sod_world_supply_officer' (vendor + quests).
+-- Rune engraving now lives on the dedicated Rune Engraver NPC (mod-rune-engraving
+-- 700000), not on the supply officers.
 --
 -- Real SoD ids are reused where free in 3.3.5a (verified against the live DB +
 -- on-disk DBCs): creature 213077 (Elaine Compton), faction 2586 (Azeroth Commerce
@@ -81,8 +81,8 @@ VALUES
 -- =====================================================================
 -- Elaine Compton (creature 213077). Level 30 humanoid, gossip + quest giver +
 -- vendor, neutral to attack (non-attackable) but Alliance-aligned via faction
--- 2586. Gossip is the engine's rune debug menu via ScriptName 'npc_rune_engraver';
--- QUESTGIVER is required so her "A Full Shipment" turn-ins can be completed.
+-- 2586. Gossip is the sod-world supply-officer menu (ScriptName
+-- 'npc_sod_world_supply_officer'): "What do you have for sale?" + her quests.
 -- =====================================================================
 REPLACE INTO `creature_template`
     (`entry`, `name`, `subname`,
@@ -95,7 +95,7 @@ VALUES
      30, 30, 2586, 131,      -- npcflag 131 = GOSSIP(1) | QUESTGIVER(2) | VENDOR(128)
      1.0, 1.14286,
      1, 2, 0, 7, 2,          -- unit_class warrior, NON_ATTACKABLE, humanoid, CIVILIAN
-     'npc_rune_engraver');
+     'npc_sod_world_supply_officer');
 
 -- Stock display 24292 ("Lisa Philbrook", a female human NPC) -- see header. Its
 -- bounding/gender come from the stock creature_model_info, so no override needed.

@@ -1,8 +1,8 @@
--- mod-sod-world: Jornah, the Horde supply/debug NPC -- the mirror of Elaine
--- Compton (sod_world_elaine_compton.sql) for the Horde. Jornah keeps the SAME
--- debug gossip by reusing the engine's ScriptName 'npc_rune_engraver' (data-only
--- coupling: mod-rune-engraving owns the C++); she is also flagged as a vendor
--- (sells nothing yet).
+-- mod-sod-world: Jornah, the Horde supply officer -- the mirror of Elaine Compton
+-- (sod_world_elaine_compton.sql) for the Horde. A quest giver (the shared
+-- "A Full Shipment" turn-ins) and a vendor, driven by the sod-world gossip
+-- ScriptName 'npc_sod_world_supply_officer'. Rune engraving lives on the dedicated
+-- Rune Engraver NPC (mod-rune-engraving 700000), not the supply officers.
 --
 -- Real SoD ids are reused where free in 3.3.5a (verified against the live DB +
 -- on-disk DBCs): creature 214070 (Jornah), faction 2587 (Durotar Supply and
@@ -75,9 +75,8 @@ VALUES
 -- =====================================================================
 -- Jornah (creature 214070). Level 30 humanoid, gossip + quest giver + vendor,
 -- neutral to attack (non-attackable) but Horde-aligned via faction 2587. Gossip is
--- the engine's rune debug menu via ScriptName 'npc_rune_engraver'; QUESTGIVER is
--- carried for parity with Elaine so future Horde "A Full Shipment" turn-ins can be
--- completed here (no Horde shipment quests exist yet).
+-- the sod-world supply-officer menu (ScriptName 'npc_sod_world_supply_officer'):
+-- "What do you have for sale?" + the shared "A Full Shipment" turn-ins.
 -- =====================================================================
 REPLACE INTO `creature_template`
     (`entry`, `name`, `subname`,
@@ -90,7 +89,7 @@ VALUES
      30, 30, 2587, 131,      -- npcflag 131 = GOSSIP(1) | QUESTGIVER(2) | VENDOR(128)
      1.0, 1.14286,
      1, 2, 0, 7, 2,          -- unit_class warrior, NON_ATTACKABLE, humanoid, CIVILIAN
-     'npc_rune_engraver');
+     'npc_sod_world_supply_officer');
 
 -- Stock display 4260 (the female Orgrimmar Grunt variant of creature 3296) -- a
 -- female orc in the standard guard armor. Its bounding/gender come from the stock
