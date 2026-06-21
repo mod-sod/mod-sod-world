@@ -28,19 +28,23 @@
 --   (1 Hostile, 2 Unfriendly, 3 Neutral)       5 = Honored     7 = Exalted
 -- Adding a row needs a worldserver restart (the in-memory lists build at startup).
 --
--- First item: Small Courier Satchel 211382, a SoD Phase 1 10-slot bag, at Friendly (4).
--- Sourced from Wowhead (item=211382): class 1 / subclass 0 (Bag), InventoryType 18,
--- 10 container slots, ItemLevel 15, quality 1 (white), Unique (maxcount 1), BoP
--- (bonding 1), icon inv_misc_bag_05, BuyPrice 4500 (45s), SellPrice 800 (8s). A plain
--- neutral bag -- no tooltip requirement (matches real SoD). displayid 99001 is a custom
--- ItemDisplayInfo (inv_misc_bag_05) shipped in the sod-client patch.
+-- Items so far (sourced from wago ItemSparse + the wowhead tooltip CDN; plain neutral
+-- bags, no tooltip requirement -- the gate is the tier system below):
+--   * Small Courier Satchel 211382 -- Friendly. class 1 / subclass 0 (Bag), InvType 18,
+--     10 slots, ItemLevel 15, quality 1 (white), Unique, BoP, icon inv_misc_bag_05,
+--     BuyPrice 4500 (45s) / SellPrice 800 (8s), displayid 99001.
+--   * Sturdy Courier Bag 211384 -- Honored. 12 slots, ItemLevel 25, quality 2 (green),
+--     Unique, BoP, icon inv_misc_bag_07_black, BuyPrice 21500 (2g15s) / SellPrice 3600
+--     (36s), displayid 99002.
+-- The displayids are custom ItemDisplayInfo rows shipped in the sod-client patch
+-- (tools/client_items.json + client_displays.json) -- item displays are client-only, so
+-- no server `*_dbc` override row is needed.
 --
 -- Idempotent: REPLACE INTO throughout. No DELETEs.
 
 -- =====================================================================
--- Small Courier Satchel (item 211382). class 1 = Container, subclass 0 = Bag,
--- InventoryType 18 = Bag, ContainerSlots 10. Plain neutral bag; the rep gate is the
--- tier system below, not item flags or item_template rep fields.
+-- The bags. class 1 = Container, subclass 0 = Bag, InventoryType 18 = Bag. Plain
+-- neutral items; the rep gate is the tier system below, not item flags or rep fields.
 -- =====================================================================
 REPLACE INTO `item_template`
     (`entry`, `class`, `subclass`, `name`, `displayid`, `Quality`, `Flags`,
@@ -53,6 +57,11 @@ VALUES
      1, 4500, 800, 18,
      -1, -1, 15, 0,
      1, 1, 10, 1, 0, 0,
+     ''),
+    (211384, 1, 0, 'Sturdy Courier Bag', 99002, 2, 0,
+     1, 21500, 3600, 18,
+     -1, -1, 25, 0,
+     1, 1, 12, 1, 0, 0,
      '');
 
 -- =====================================================================
@@ -69,7 +78,8 @@ CREATE TABLE IF NOT EXISTS `sod_world_supply_vendor`
   DEFAULT CHARSET = utf8mb4
     COMMENT 'mod-sod-world: supply-officer vendor items + min reputation rank (faction derived from the officer)';
 
--- Small Courier Satchel -> Friendly (rank 4) with the officer's supply faction.
+-- item -> minimum rank with the officer's supply faction (4 = Friendly, 5 = Honored).
 REPLACE INTO `sod_world_supply_vendor` (`item`, `RequiredRank`)
 VALUES
-    (211382, 4);
+    (211382, 4),
+    (211384, 5);

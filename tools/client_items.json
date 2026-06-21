@@ -58,5 +58,15 @@
     "display": 99001,
     "invtype": 18,
     "sheath": 0
+  },
+  {
+    "id": 211384,
+    "name": "Sturdy Courier Bag",
+    "class": 1,
+    "subclass": 0,
+    "material": 0,
+    "display": 99002,
+    "invtype": 18,
+    "sheath": 0
   }
 ]

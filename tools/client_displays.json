@@ -8,5 +8,10 @@
     "id": 99001,
     "name": "Small Courier Satchel (inv_misc_bag_05)",
     "icon": "INV_Misc_Bag_05"
+  },
+  {
+    "id": 99002,
+    "name": "Sturdy Courier Bag (inv_misc_bag_07_black)",
+    "icon": "INV_Misc_Bag_07_Black"
   }
 ]
