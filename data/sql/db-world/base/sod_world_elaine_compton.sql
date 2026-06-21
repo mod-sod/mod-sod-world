@@ -46,7 +46,10 @@
 -- Crusade 1106): RaceMask 1101 = Alliance races (Horde never sees it, matching
 -- Elaine's Alliance alignment), ClassMask 0 = all classes, Base 0 = starts
 -- Neutral, Flags 16 = peace-forced (the VISIBLE bit is set by the server on the
--- first rep gain). ParentFactionID 1118 = the "Classic" rep-pane category.
+-- first rep gain). ParentFactionID 0 = no parent, so the client buckets it under
+-- the generated "Other" rep-pane header (where stock parentless factions like
+-- Syndicate / Wintersaber Trainers sit) -- matching how real SoD shows these
+-- supply factions. (1118 "Classic" would file it under that expansion header.)
 -- Unspecified columns default to 0 (slots 2-4, parent mod/cap). The server reads
 -- this via the generic faction_dbc override; the matching CLIENT Faction.dbc row
 -- (with the same rep fields) ships in the sod-client patch -- without it the rep
@@ -61,7 +64,7 @@ VALUES
     (2586, 105,
      1101, 0,
      0, 16,
-     1118, 'Azeroth Commerce Authority', 16712190);
+     0, 'Azeroth Commerce Authority', 16712190);
 
 -- FactionTemplate 2586 -> Faction 2586. Reactions cloned from Stormwind (template
 -- 12): FactionGroup 2 (Alliance), FriendGroup 2 (Alliance), EnemyGroup 4 (Horde),
