@@ -32,9 +32,8 @@ character only ever sees its own class's notes. See
 `<Supply Officer>` of the **Azeroth Commerce Authority** (a friendly Alliance
 faction), standing in Stormwind's Trade District. She is the
 shared, class-agnostic front-end for the rune-engraving debug menu — she reuses
-`mod-rune-engraving`'s `npc_rune_engraver` gossip — and is flagged as a vendor
-(she'll stock SoD goods later; nothing yet). She replaces the engine's old
-placeholder "Rune Engraver". Her **faction** is a real reputation faction shipped
+`mod-rune-engraving`'s `npc_rune_engraver` gossip — and is a vendor. She replaces
+the engine's old placeholder "Rune Engraver". Her **faction** is a real reputation faction shipped
 as `*_dbc` overrides (server) + a `sod-client` patch entry (client). Her **look**
 uses a stock human-female officer display — the 3.3.5a *HD* client crashes baking
 hand-authored character geosets, so an exact custom blue outfit would need a
@@ -46,6 +45,13 @@ are four crate tiers (one per SoD phase, item level 10/25/40/50), each its own
 repeatable quest. Gold and XP scale to your level; reputation per turn-in is fixed
 per tier (300 / 800 / 1000 / 1850). Faithful to SoD, a quest only appears while
 you are actually carrying that tier's crate (with an `inv_crate_03` bag icon).
+
+**Supply-officer stock is reputation-tiered.** The officers sell a shared list (a
+10-slot **Small Courier Satchel** so far). As in SoD, each item stays hidden until you
+reach its required standing with the city's supply faction — there is no "Requires
+Friendly" tooltip; the item simply isn't offered until you qualify, then appears for
+sale. Different items can sit at different tiers (Friendly, Honored, Exalted), and below
+the lowest tier the officer shows no "for sale" option at all.
 
 The crates **drop from SoD world chests** — each tier is added to the loot of the
 phase-appropriate chests (e.g. P1 from Battered Chest `106319`, P4 from Solid Chest

@@ -1,33 +1,46 @@
--- mod-sod-world: the supply officers' shared vendor catalog.
+-- mod-sod-world: supply-officer vendor stock + per-item reputation tiers.
 --
--- All supply officers sell the SAME list. Rather than repeat every item on every
--- officer, the items live ONCE under a shared "reference" entry (700050) and each
--- officer carries a single reference row: a negative `item` in npc_vendor means
--- "also sell everything entry 700050 sells" (core: ObjectMgr::LoadReferenceVendor).
--- ==> To add an item to every officer, add ONE row to the 700050 catalog below.
+-- The six supply officers sell a shared, reputation-gated list. Real SoD HIDES an item
+-- until you reach its required standing with the city's supply faction (no "Requires
+-- Friendly" tooltip -- the item simply isn't offered), and different items sit at
+-- different tiers (Friendly / Honored / Exalted).
 --
--- 700050 is a reference id, not a real NPC; the dummy creature_template below just
--- gives it the VENDOR flag so the catalog rows pass IsVendorItemValid without an
--- error (the officers resolve the reference either way). Other modules can stock the
--- officers too -- either add their item to the 700050 catalog, or add their own
--- per-officer npc_vendor rows.
+-- We do NOT gate with vendor `conditions` (6 rows per item, one per officer -- scales
+-- badly and can't share a tier across officers) nor item_template rep fields (single
+-- faction; can't cover a shared cross-faction item). Instead the gate is a VENDOR
+-- REDIRECT done in C++ (src/player_sod_world_supply_vendor.cpp + world_sod_world_supply_vendor.cpp):
+--   * This table is the SOURCE OF TRUTH: one row per item = (item, minimum rep RANK).
+--     The faction is NOT stored -- it's derived from the officer you talk to (Alliance
+--     officers -> Azeroth Commerce Authority 2586, Horde -> Durotar Supply and Logistics
+--     2587), so one rank-only row gates the item for BOTH sides.
+--   * At startup a WorldScript reads this table and builds cumulative per-rank vendor
+--     lists IN MEMORY (store entries 700060+rank, ranks 0..7): an item with RequiredRank
+--     R is added to every tier R..7. Nothing is written to `npc_vendor`.
+--   * When a player opens an officer, a PlayerScript redirects the merchant list to the
+--     tier entry matching the player's rank with that officer's faction -- so the list
+--     (and the buy, which keys off the same redirect) shows exactly the items they
+--     qualify for. Below the lowest tier the list is empty and the officer shows no
+--     vendor option at all.
 --
--- First item: Small Courier Satchel (211382), a SoD Phase 1 10-slot bag.
+-- ==> To add an item to every officer, add ONE row here: (item, RequiredRank). Other
+-- modules add their stock the same way. RequiredRank uses the ReputationRank enum:
+--   0 = ungated (Hated..Neutral all see it)   4 = Friendly    6 = Revered
+--   (1 Hostile, 2 Unfriendly, 3 Neutral)       5 = Honored     7 = Exalted
+-- Adding a row needs a worldserver restart (the in-memory lists build at startup).
+--
+-- First item: Small Courier Satchel 211382, a SoD Phase 1 10-slot bag, at Friendly (4).
 -- Sourced from Wowhead (item=211382): class 1 / subclass 0 (Bag), InventoryType 18,
 -- 10 container slots, ItemLevel 15, quality 1 (white), Unique (maxcount 1), BoP
--- (bonding 1), icon inv_misc_bag_05, BuyPrice 4500 (45s), SellPrice 800 (8s).
--- Holes (not in the sourced data): RequiredLevel -> 0, Material -> 0 (cosmetic),
--- Flags -> 0 (Wowhead flags2 not portable; BoP/Unique come from bonding/maxcount).
--- displayid 99001 is a custom ItemDisplayInfo (icon inv_misc_bag_05) built into the
--- sod-client patch (tools/client_items.json + client_displays.json).
+-- (bonding 1), icon inv_misc_bag_05, BuyPrice 4500 (45s), SellPrice 800 (8s). A plain
+-- neutral bag -- no tooltip requirement (matches real SoD). displayid 99001 is a custom
+-- ItemDisplayInfo (inv_misc_bag_05) shipped in the sod-client patch.
 --
 -- Idempotent: REPLACE INTO throughout. No DELETEs.
 
 -- =====================================================================
 -- Small Courier Satchel (item 211382). class 1 = Container, subclass 0 = Bag,
--- InventoryType 18 = Bag, ContainerSlots 10. The client reads ContainerSlots /
--- quality / price from this item_template via the item query; the client Item.dbc
--- row (sod-client patch) only carries class/subclass/display/invtype.
+-- InventoryType 18 = Bag, ContainerSlots 10. Plain neutral bag; the rep gate is the
+-- tier system below, not item flags or item_template rep fields.
 -- =====================================================================
 REPLACE INTO `item_template`
     (`entry`, `class`, `subclass`, `name`, `displayid`, `Quality`, `Flags`,
@@ -43,45 +56,20 @@ VALUES
      '');
 
 -- =====================================================================
--- Reference-list holder (entry 700050) -- NOT spawned. A minimal VENDOR-flagged
--- template so the catalog rows below load cleanly. faction 35 is incidental.
+-- Source-of-truth table: supply-officer items + the minimum reputation RANK to buy.
+-- The WorldScript world_sod_world_supply_vendor reads this at startup and builds the
+-- cumulative in-memory tier lists. Faction is derived from the officer, not stored here.
 -- =====================================================================
-REPLACE INTO `creature_template`
-    (`entry`, `name`, `subname`, `minlevel`, `maxlevel`, `faction`, `npcflag`,
-     `unit_class`, `type`)
-VALUES
-    (700050, 'Supply Vendor Catalog', 'shared reference list (never spawned)',
-     1, 1, 35, 128, 1, 7);
+CREATE TABLE IF NOT EXISTS `sod_world_supply_vendor`
+(
+    `item`         INT UNSIGNED     NOT NULL,
+    `RequiredRank` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (`item`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+    COMMENT 'mod-sod-world: supply-officer vendor items + min reputation rank (faction derived from the officer)';
 
--- A display is required even for a never-spawned template (else a load warning);
--- 24292 is incidental.
-REPLACE INTO `creature_template_model`
-    (`CreatureID`, `Idx`, `CreatureDisplayID`, `DisplayScale`, `Probability`)
+-- Small Courier Satchel -> Friendly (rank 4) with the officer's supply faction.
+REPLACE INTO `sod_world_supply_vendor` (`item`, `RequiredRank`)
 VALUES
-    (700050, 0, 24292, 1.0, 1.0);
-
--- =====================================================================
--- The shared catalog (entry 700050). Add items HERE -- every officer that
--- references 700050 sells them. Gold at the item's BuyPrice (ExtendedCost 0),
--- unlimited stock (maxcount 0), no restock timer (incrtime 0).
--- =====================================================================
-REPLACE INTO `npc_vendor`
-    (`entry`, `slot`, `item`, `maxcount`, `incrtime`, `ExtendedCost`)
-VALUES
-    (700050, 0, 211382, 0, 0, 0);   -- Small Courier Satchel
-
--- =====================================================================
--- Each officer references the shared catalog (negative item = reference to 700050).
--- These rows are fixed -- new items go in the catalog above, not here. Officers:
--- Elaine 213077, Jornah 214070, Marcy 214101, Tamelyn 214099, Gishah 214098,
--- Dokimi 214096.
--- =====================================================================
-REPLACE INTO `npc_vendor`
-    (`entry`, `slot`, `item`, `maxcount`, `incrtime`, `ExtendedCost`)
-VALUES
-    (213077, 0, -700050, 0, 0, 0),
-    (214070, 0, -700050, 0, 0, 0),
-    (214101, 0, -700050, 0, 0, 0),
-    (214099, 0, -700050, 0, 0, 0),
-    (214098, 0, -700050, 0, 0, 0),
-    (214096, 0, -700050, 0, 0, 0);
+    (211382, 4);

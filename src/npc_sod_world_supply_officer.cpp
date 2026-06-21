@@ -17,10 +17,12 @@
 
 #include "Creature.h"
 #include "GossipDef.h"
+#include "ObjectMgr.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "ScriptedGossip.h"
 #include "WorldSession.h"
+#include "sod_world_supply.h"
 
 // Gossip for the SoD supply officers (Elaine Compton 213077, Jornah 214070): a
 // vendor + quest giver. The rune-engraving gossip used to live here (the officers
@@ -33,6 +35,24 @@ enum SupplyOfficerSender
     SENDER_VENDOR = 1, // open the vendor inventory
 };
 
+namespace
+{
+    // True if the player has any purchasable stock at this officer -- i.e. their
+    // reputation tier (resolved from the officer's faction) holds at least one item. The
+    // tier list is the same one player_sod_world_supply_vendor.cpp redirects the merchant
+    // window to, so the "What do you have for sale?" option is shown exactly when opening
+    // it would show goods. Below the lowest tier the list is empty -> no option (SoD).
+    bool HasVendorItemFor(Player* player, Creature* creature)
+    {
+        uint32 const tierEntry = SodWorldSupply::TierEntryFor(player, creature);
+        if (!tierEntry)
+            return false;
+
+        VendorItemData const* items = sObjectMgr->GetNpcVendorItemList(tierEntry);
+        return items && !items->Empty();
+    }
+}
+
 class npc_sod_world_supply_officer : public CreatureScript
 {
 public:
@@ -42,8 +62,10 @@ public:
     {
         player->PlayerTalkClass->ClearMenus();
 
-        // Vendor option only when the officer actually has goods to sell.
-        if (creature->HasNpcFlag(UNIT_NPC_FLAG_VENDOR))
+        // Vendor option only when the officer has something THIS player can buy --
+        // hidden when every item is filtered out (e.g. the rep-gated satchel below
+        // Friendly), so a below-rep player sees no vendor option at all (SoD behavior).
+        if (creature->HasNpcFlag(UNIT_NPC_FLAG_VENDOR) && HasVendorItemFor(player, creature))
             AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "What do you have for sale?", SENDER_VENDOR, 0);
 
         // Surface the officer's quests (the "A Full Shipment" turn-ins) -- the custom
