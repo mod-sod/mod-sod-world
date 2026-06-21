@@ -28,23 +28,27 @@ module hangs its own `creature_loot_template` row off it (Entry `212261`), so a
 character only ever sees its own class's notes. See
 [Adding class loot](docs/adding-class-loot.md).
 
-**Elaine Compton — the shared supply / debug NPC.** A Level 30 Human Female
-`<Supply Officer>` of the **Azeroth Commerce Authority** (a friendly Alliance
-faction), standing in Stormwind's Trade District. She is the
-shared, class-agnostic front-end for the rune-engraving debug menu — she reuses
-`mod-rune-engraving`'s `npc_rune_engraver` gossip — and is a vendor. She replaces
-the engine's old placeholder "Rune Engraver". Her **faction** is a real reputation faction shipped
-as `*_dbc` overrides (server) + a `sod-client` patch entry (client). Her **look**
-uses a stock human-female officer display — the 3.3.5a *HD* client crashes baking
-hand-authored character geosets, so an exact custom blue outfit would need a
-pre-baked texture rather than runtime geosets.
+**Supply officers — a capital-city rep network.** Six `<Supply Officer>` NPCs, one
+in each capital, run the supply turn-ins and a reputation-tiered vendor. Alliance
+officers belong to the **Azeroth Commerce Authority**, Horde to **Durotar Supply and
+Logistics** — mirror reputation factions, one per side:
 
-**"A Full Shipment" — repeatable supply turn-ins.** Hand Elaine a **Supply
-Shipment** crate for gold, XP, and Azeroth Commerce Authority reputation. There
-are four crate tiers (one per SoD phase, item level 10/25/40/50), each its own
-repeatable quest. Gold and XP scale to your level; reputation per turn-in is fixed
-per tier (300 / 800 / 1000 / 1850). Faithful to SoD, a quest only appears while
-you are actually carrying that tier's crate (with an `inv_crate_03` bag icon).
+- **Alliance:** Elaine Compton (Stormwind), Marcy Baker (Darnassus), Tamelyn
+  Aldridge (Ironforge).
+- **Horde:** Jornah (Orgrimmar), Gishah (Undercity), Dokimi (Thunder Bluff).
+
+Each uses a stock city-officer display — the 3.3.5a *HD* client crashes baking
+hand-authored character geosets, so a custom outfit would need a pre-baked texture
+rather than runtime geosets. The factions are real reputation factions shipped as
+`*_dbc` overrides (server) plus a `sod-client` patch entry (client).
+
+**"A Full Shipment" — repeatable supply turn-ins.** Hand any supply officer a
+**Supply Shipment** crate for gold, XP, and reputation with your side's supply
+faction (Alliance → Azeroth Commerce Authority, Horde → Durotar Supply and
+Logistics). There are four crate tiers (one per SoD phase, item level 10/25/40/50),
+each its own repeatable quest. Gold and XP scale to your level; reputation per
+turn-in is fixed per tier (300 / 800 / 1000 / 1850). Faithful to SoD, a quest only
+appears while you are carrying that tier's crate (with an `inv_crate_03` bag icon).
 
 **Supply-officer stock is reputation-tiered.** The officers sell a shared list (a
 10-slot **Small Courier Satchel** so far). As in SoD, each item stays hidden until you
@@ -64,6 +68,9 @@ Replace Supplies crafting" chain is intentionally out of scope.
 
 - **Loot:** a class module adds `creature_loot_template (Entry=212261, Item=<its notes>)`
   plus a Mage/Warrior/... `conditions` row. No C++ linkage.
+- **Supply-vendor stock:** add one row to `sod_world_supply_vendor (item, RequiredRank)`.
+  The item then sells on every supply officer, hidden until the buyer reaches that
+  reputation rank with the officer's faction. No C++ linkage.
 - **Client item icons:** this module's custom items declare a
   `tools/client_items.json` manifest. The standalone
   [`sod-client`](https://github.com/mod-sod/sod-client) pipeline aggregates every
@@ -74,19 +81,22 @@ Replace Supplies crafting" chain is intentionally out of scope.
 ## IDs
 
 Templates that exist in SoD use the **real SoD id** (greppable to wowhead, and so
-modules never negotiate bands): Awakened Lich `212261`, Elaine Compton `213077`,
-Dusty Coffer `411348`, Decrepit Phylactery `210568`, Supply Shipment crates
+modules never negotiate bands): Awakened Lich `212261`; supply officers Elaine
+Compton `213077`, Marcy Baker `214101`, Tamelyn Aldridge `214099` (Alliance) and
+Jornah `214070`, Gishah `214098`, Dokimi `214096` (Horde); Dusty Coffer `411348`,
+Decrepit Phylactery `210568`, Small Courier Satchel `211382`, Supply Shipment crates
 `211367` / `211839` / `217337` / `221008`, "A Full Shipment" quests `78612` /
-`79103` / `80309` / `82309` (P1–P4), faction Azeroth Commerce Authority `2586`
-(a reputation faction, `ReputationIndex 105`). IDs with no SoD counterpart are
-custom:
+`79103` / `80309` / `82309` (P1–P4); reputation factions Azeroth Commerce Authority
+`2586` (`ReputationIndex 105`, Alliance) and Durotar Supply and Logistics `2587`
+(`ReputationIndex 106`, Horde). IDs with no SoD counterpart are custom:
 
 | Kind | Allocation |
 |------|------------|
 | Custom gameobjects (no SoD id) | `701000`–`701099` (Throne `701000`, Bones `701001`) |
-| Custom `CreatureDisplayInfo` / `…Extra` | `700000`+ (reserved; Elaine uses a stock display) |
-| Custom `ItemDisplayInfo` ids | `99000`+ (Phylactery icon `99000`) |
-| Creature spawn guids | `8820000`+ (Elaine `8820001`) |
+| Supply-vendor tier lists (in-memory, not creatures) | `700060`–`700067` (one per reputation rank) |
+| Custom `CreatureDisplayInfo` / `…Extra` | `700000`+ (reserved; officers use stock displays) |
+| Custom `ItemDisplayInfo` ids | `99000`+ (Phylactery `99000`, Courier Satchel `99001`) |
+| Creature spawn guids | `8820000`+ (six supply officers `8820001`–`8820006`) |
 | Gameobject spawn guids | `8821000`+ (Coffer/Throne/Skeleton) |
 
 Custom creature displays and factions are delivered as core `*_dbc` override rows
