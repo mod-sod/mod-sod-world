@@ -66,6 +66,13 @@ phase-appropriate chests (e.g. P1 from Battered Chest `106319`, P4 from Solid Ch
 `.reload config`. The crate drops ready to turn in — SoD's fuller "Waylaid Supplies →
 Replace Supplies crafting" chain is intentionally out of scope.
 
+**Grizzby — the Ratchet rune-notes vendor.** A goblin merchant in **Ratchet** (The
+Barrens) who sells class rune-unlock notes. This module ships only Grizzby himself
+(creature + spawn, the neutral Ratchet faction, a stock goblin display); each class
+module stocks him with its own notes via an `npc_vendor` row — so far
+[`mod-sod-mage`](../mod-sod-mage)'s **Spell Notes: Rewind Time**. With no class module
+installed he's simply an empty vendor.
+
 ## How it couples to class modules (data only)
 
 - **Loot:** a class module adds `creature_loot_template (Entry=212261, Item=<its notes>)`
@@ -73,6 +80,8 @@ Replace Supplies crafting" chain is intentionally out of scope.
 - **Supply-vendor stock:** add one row to `sod_world_supply_vendor (item, RequiredRank)`.
   The item then sells on every supply officer, hidden until the buyer reaches that
   reputation rank with the officer's faction. No C++ linkage.
+- **Plain vendor stock (Grizzby):** add an `npc_vendor (entry=211653, item=<its notes>)`
+  row to stock the Ratchet vendor Grizzby. No C++ linkage.
 - **Client item icons:** this module's custom items declare a
   `tools/client_items.json` manifest. The standalone
   [`sod-client`](https://github.com/mod-sod/sod-client) pipeline aggregates every
@@ -90,7 +99,8 @@ Decrepit Phylactery `210568`, Small Courier Satchel `211382`, Sturdy Courier Bag
 `211384`, supply-officer equipment Provisioner's Gloves `212588` / Courier Treads
 `212589` / Hoist Strap `212590`, Supply Shipment crates
 `211367` / `211839` / `217337` / `221008`, "A Full Shipment" quests `78612` /
-`79103` / `80309` / `82309` (P1–P4); reputation factions Azeroth Commerce Authority
+`79103` / `80309` / `82309` (P1–P4); the Ratchet vendor Grizzby `211653` (faction 69,
+stock goblin display 7099); reputation factions Azeroth Commerce Authority
 `2586` (`ReputationIndex 105`, Alliance) and Durotar Supply and Logistics `2587`
 (`ReputationIndex 106`, Horde). IDs with no SoD counterpart are custom:
 
@@ -100,7 +110,7 @@ Decrepit Phylactery `210568`, Small Courier Satchel `211382`, Sturdy Courier Bag
 | Supply-vendor tier lists (in-memory, not creatures) | `700060`–`700067` (one per reputation rank) |
 | Custom `CreatureDisplayInfo` / `…Extra` | `700000`+ (reserved; officers use stock displays) |
 | Custom `ItemDisplayInfo` ids | `99000`+ (Phylactery `99000`, Courier Satchel `99001`, Sturdy Bag `99002`) |
-| Creature spawn guids | `8820000`+ (six supply officers `8820001`–`8820006`) |
+| Creature spawn guids | `8820000`+ (six supply officers `8820001`–`8820006`, Grizzby `8820007`) |
 | Gameobject spawn guids | `8821000`+ (Coffer/Throne/Skeleton) |
 
 Custom creature displays and factions are delivered as core `*_dbc` override rows
