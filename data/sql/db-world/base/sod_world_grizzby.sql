@@ -40,8 +40,8 @@ VALUES
     (211653, 0, 7099, 1.0, 1.0);
 
 -- =====================================================================
--- Spawn in Ratchet, The Barrens (map 1), among the lower-terrace merchants. zoneId/
--- areaId 0 = auto-detect. Coords are a sensible seed near Grazlix/Vexspindle; admins
+-- Spawn in Ratchet, The Barrens (map 1), among the merchants. zoneId/areaId 0 =
+-- auto-detect. Coords are the finalized in-game placement; admins can still
 -- fine-tune with .npc move (INSERT IGNORE preserves it). Spawn guid 8820007.
 -- =====================================================================
 INSERT IGNORE INTO `creature`
@@ -49,4 +49,4 @@ INSERT IGNORE INTO `creature`
      `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`,
      `spawntimesecs`, `wander_distance`, `MovementType`)
 VALUES
-    (8820007, 211653, 1, 0, 0, 1, 1, 0, -988.0, -3686.0, 9.5, 2.0, 300, 0, 0);
+    (8820007, 211653, 1, 0, 0, 1, 1, 0, -1044.63062, -3650.60767, 23.87782, 4.53271, 300, 0, 0);
